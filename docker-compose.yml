@@ -1,0 +1,44 @@
+services:
+  game :
+    container_name: squadro_game
+    build: .docker/php
+    restart: always
+    ports:
+      - "8080:80"
+    volumes:
+      - ./src:/var/www/html
+    environment:
+      XDEBUG_MODE: debug
+      XDEBUG_CONFIG: "client_host=host.docker.internal client_port=9003"
+    networks:
+      - internal
+
+  db:
+    container_name: db  
+    image: mysql:latest
+    restart: always
+    env_file:
+      - ./.docker/mysql/.env
+    networks:
+      - internal
+    volumes:
+      - ./.docker/mysql/data:/var/lib/mysql
+
+  phpmyadmin:
+    container_name: phpmyadmin
+    image: phpmyadmin:latest
+    restart: always
+    ports:
+      - 8081:80
+    env_file:
+      - ./.docker/phpmyadmin/.env
+    depends_on:
+      - db
+    networks:
+      - internal
+      
+networks:
+  internal:
+
+
+

@@ -1,0 +1,19 @@
+{
+    "name": "game/squadro",
+    "description": "squadro game",
+    "type": "project",
+    "require": {
+        "phpunit/phpunit": "11.5.x-dev"
+    },
+    "autoload": {
+        "psr-4": {
+            "Game\\Squadro\\": "app/"
+        }
+    },
+    "authors": [
+        {
+            "name": "Said Abdelli"
+        }
+    ],
+    "minimum-stability": "dev"
+}
