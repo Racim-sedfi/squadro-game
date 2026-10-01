@@ -1,0 +1,59 @@
+{
+    "name": "racim-sedfi/squadro",
+    "description": "Jeu de plateau Squadro multijoueur en ligne — PHP 8 orienté objet, architecture MVC, PDO.",
+    "type": "project",
+    "license": "proprietary",
+    "keywords": [
+        "squadro",
+        "jeu",
+        "php",
+        "mvc",
+        "pdo"
+    ],
+    "authors": [
+        {
+            "name": "Racim Sedfi"
+        },
+        {
+            "name": "Said Abdelli"
+        }
+    ],
+    "require": {
+        "php": ">=8.2",
+        "ext-pdo": "*",
+        "ext-json": "*"
+    },
+    "require-dev": {
+        "phpunit/phpunit": "^11.5",
+        "phpstan/phpstan": "^2.1"
+    },
+    "autoload": {
+        "psr-4": {
+            "Squadro\\": "src/"
+        },
+        "files": [
+            "src/Http/fonctions.php"
+        ]
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Squadro\\Tests\\": "tests/"
+        }
+    },
+    "scripts": {
+        "serve": [
+            "Composer\\Config::disableProcessTimeout",
+            "php -S localhost:8000 -t public"
+        ],
+        "test": "phpunit",
+        "analyse": "phpstan analyse --memory-limit=512M",
+        "check": [
+            "@analyse",
+            "@test"
+        ]
+    },
+    "config": {
+        "sort-packages": true,
+        "optimize-autoloader": true
+    }
+}

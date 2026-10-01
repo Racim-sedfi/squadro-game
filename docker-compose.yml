@@ -1,44 +1,50 @@
+# Lancement : docker compose up --build   →   http://localhost:8080
+# Les valeurs par défaut conviennent pour un usage local ; surchargez-les via un fichier .env (voir .env.example).
+
 services:
-  game :
-    container_name: squadro_game
-    build: .docker/php
-    restart: always
+  app:
+    build:
+      context: .
+      dockerfile: docker/php/Dockerfile
     ports:
-      - "8080:80"
-    volumes:
-      - ./src:/var/www/html
+      - "${APP_PORT:-8080}:80"
     environment:
-      XDEBUG_MODE: debug
-      XDEBUG_CONFIG: "client_host=host.docker.internal client_port=9003"
-    networks:
-      - internal
+      APP_DEBUG: ${APP_DEBUG:-0}
+      DB_DSN: "mysql:host=db;port=3306;dbname=${DB_NAME:-squadro};charset=utf8mb4"
+      DB_USER: ${DB_USER:-squadro}
+      DB_PASSWORD: ${DB_PASSWORD:-squadro}
+    depends_on:
+      db:
+        condition: service_healthy
+    restart: unless-stopped
 
   db:
-    container_name: db  
-    image: mysql:latest
-    restart: always
-    env_file:
-      - ./.docker/mysql/.env
-    networks:
-      - internal
+    image: mysql:8.4
+    environment:
+      MYSQL_DATABASE: ${DB_NAME:-squadro}
+      MYSQL_USER: ${DB_USER:-squadro}
+      MYSQL_PASSWORD: ${DB_PASSWORD:-squadro}
+      MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD:-root}
     volumes:
-      - ./.docker/mysql/data:/var/lib/mysql
+      - db-data:/var/lib/mysql
+      - ./database/schema.mysql.sql:/docker-entrypoint-initdb.d/01-schema.sql:ro
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "127.0.0.1", "-u", "root", "-p${DB_ROOT_PASSWORD:-root}"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+    restart: unless-stopped
 
+  # Outil optionnel : docker compose --profile outils up
   phpmyadmin:
-    container_name: phpmyadmin
-    image: phpmyadmin:latest
-    restart: always
+    image: phpmyadmin:5
+    profiles: [outils]
     ports:
-      - 8081:80
-    env_file:
-      - ./.docker/phpmyadmin/.env
+      - "${PMA_PORT:-8081}:80"
+    environment:
+      PMA_HOST: db
     depends_on:
       - db
-    networks:
-      - internal
-      
-networks:
-  internal:
 
-
-
+volumes:
+  db-data:

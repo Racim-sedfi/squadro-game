@@ -1,0 +1,63 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  qualite:
+    name: Tests & analyse statique (PHP ${{ matrix.php }})
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        php: ['8.2', '8.3']
+
+    services:
+      mysql:
+        image: mysql:8.4
+        env:
+          MYSQL_DATABASE: squadro_test
+          MYSQL_USER: squadro
+          MYSQL_PASSWORD: squadro
+          MYSQL_ROOT_PASSWORD: root
+        ports: ['3306:3306']
+        options: >-
+          --health-cmd="mysqladmin ping -h 127.0.0.1 -uroot -proot"
+          --health-interval=5s --health-timeout=3s --health-retries=20
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ matrix.php }}
+          extensions: pdo_mysql, pdo_sqlite
+          coverage: pcov
+
+      - name: Installer les dépendances
+        run: composer install --no-interaction --no-progress --prefer-dist
+
+      - name: Analyse statique (PHPStan niveau 8)
+        run: composer analyse
+
+      - name: Tests (SQLite)
+        run: vendor/bin/phpunit --testdox
+
+      - name: Créer le schéma MySQL
+        run: mysql -h 127.0.0.1 -usquadro -psquadro squadro_test < database/schema.mysql.sql
+
+      - name: Tests (MySQL) + couverture
+        env:
+          TEST_DB_DSN: mysql:host=127.0.0.1;port=3306;dbname=squadro_test;charset=utf8mb4
+          TEST_DB_USER: squadro
+          TEST_DB_PASSWORD: squadro
+        run: vendor/bin/phpunit --coverage-text
+
+  docker:
+    name: Construction de l'image Docker
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: docker compose build
+        run: docker compose build
