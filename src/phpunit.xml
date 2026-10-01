@@ -1,7 +1,0 @@
-<phpunit bootstrap="vendor/autoload.php">
-    <coverage processUncoveredFiles="true">
-        <include>
-            <directory suffix=".php">app/</directory>
-        </include>
-    </coverage>
-</phpunit>

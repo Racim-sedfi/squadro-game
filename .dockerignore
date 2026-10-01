@@ -1,0 +1,8 @@
+.git
+.github
+vendor
+var
+coverage
+tests
+docs
+.env
